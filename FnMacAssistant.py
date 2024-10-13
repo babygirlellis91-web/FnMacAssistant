@@ -99,13 +99,15 @@ def populate_ipa_dropdown():
         ipa_combobox['values'] = list(ipa_files_dict.keys())
         ipa_combobox.current(0)  # Set the default selection to the first IPA file
 
-# Function to patch the app (no changes here)
+# Function to patch the app
 def patch_app():
     provision_url = "https://github.com/Drohy/FortniteMAC/raw/04890b0778751d20afd5330d4346972e99b9c1f5/FILES/embedded.mobileprovision"
     temp_path = "/tmp/embedded.mobileprovision"
+    github_image_url = "https://raw.githubusercontent.com/isacucho/FnMacAssistant/7fad711275985d7c80967e08ae810f905178c12e/files/LaunchScreenIOS.png"  # Raw URL to your image
     fortnite_app_path = "/Applications/Fortnite.app"
     fortnite_1_app_path = "/Applications/Fortnite-1.app"
     provision_dest_path = os.path.join(fortnite_app_path, "Wrapper/FortniteClient-IOS-Shipping.app/embedded.mobileprovision")
+    launch_screen_dest_path = os.path.join(fortnite_app_path, "Wrapper/FortniteClient-IOS-Shipping.app/LaunchScreenIOS.png")
 
     try:
         # Step 1: Download the embedded.mobileprovision file
@@ -133,6 +135,21 @@ def patch_app():
 
         shutil.move(temp_path, provision_dest_path)
 
+        # Step 4: Download the LaunchScreenIOS.png from the public GitHub repo
+        response = requests.get(github_image_url, stream=True)
+        response.raise_for_status()
+
+        # Save the image temporarily
+        temp_image_path = "/tmp/LaunchScreenIOS.png"
+        with open(temp_image_path, 'wb') as image_file:
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    image_file.write(chunk)
+
+        # Step 5: Replace the LaunchScreenIOS.png in the app package
+        shutil.move(temp_image_path, launch_screen_dest_path)
+
+       
         # Show success message
         messagebox.showinfo("Patch Complete", "Fortnite has been patched. You can now open Fortnite.")
     except Exception as e:
